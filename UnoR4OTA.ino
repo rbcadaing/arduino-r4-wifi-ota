@@ -8,12 +8,14 @@ const unsigned long BLINK_INTERVAL = 300;   // ms
 unsigned long lastBlink = 0;
 bool ledOn = false;
 
-void setup()
+void setupOTA()
 {
-    Serial.begin(115200);
-    delay(2000);
-
-    pinMode(LED_BUILTIN, OUTPUT);
+    // Static IP (outside router's DHCP pool on 192.168.254.0/24)
+    IPAddress ip(192, 168, 254, 240);
+    IPAddress gateway(192, 168, 254, 254);
+    IPAddress subnet(255, 255, 255, 0);
+    IPAddress dns(192, 168, 254, 254);
+    WiFi.config(ip, dns, gateway, subnet);
 
     Serial.println("[APP] Connecting to WiFi...");
     while (WiFi.begin(SECRET_SSID, SECRET_PASS) != WL_CONNECTED)
@@ -43,6 +45,16 @@ void setup()
     // name shown in the IDE, upload password
     ArduinoOTA.begin(WiFi.localIP(), "UnoR4WiFi", "password", InternalStorage);
     Serial.println("[APP] OTA ready");
+}
+
+void setup()
+{
+    Serial.begin(115200);
+    delay(2000);
+
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    setupOTA();
 
     Serial.print("[APP] Blink interval: ");
     Serial.print(BLINK_INTERVAL);
