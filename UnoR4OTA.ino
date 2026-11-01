@@ -4,8 +4,10 @@
 
 // Change this between uploads to see that an OTA update worked
 const unsigned long BLINK_INTERVAL = 300;   // ms
+const unsigned long WIFI_CHECK_INTERVAL = 5000;   // ms
 
 unsigned long lastBlink = 0;
+unsigned long lastWifiCheck = 0;
 bool ledOn = false;
 
 void setupOTA()
@@ -63,10 +65,21 @@ void setup()
 
 void loop()
 {
+    // Reconnect (and re-arm OTA) if the link drops while idle
+    unsigned long now = millis();
+    if (now - lastWifiCheck >= WIFI_CHECK_INTERVAL)
+    {
+        lastWifiCheck = now;
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            Serial.println("[APP] WiFi lost, reconnecting...");
+            setupOTA();
+        }
+    }
+
     ArduinoOTA.poll();   // must run often, so no delay() here
 
     // Non-blocking blink
-    unsigned long now = millis();
     if (now - lastBlink >= BLINK_INTERVAL)
     {
         lastBlink = now;
